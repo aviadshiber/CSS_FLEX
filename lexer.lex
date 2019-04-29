@@ -5,6 +5,7 @@
 #include <string.h> 
 #include <stdlib.h>
 #include <stdbool.h>
+#include "tokens.h"
 /*<COMM>(\/\*)(.|\s)*(\/\*)(.|\s)*(\*\/)*/
 #define STRING_MAX_SIZE (1025)
 int commentCounter;
@@ -14,14 +15,14 @@ int stringIndex;
 void initCommentCounter();
 void incCommentCounter();
 void showComment();
-void showToken(char * name);
+void showToken(const char * name);
 void errorChar();
-void error(char* errorType);
+void error(const char* errorType);
 void initStringBuffer();
 void addSubStringToBuffer();
 void showString();
 void errorAscii();
-int indexof(char* str,char c);
+int indexof(const char* str,char c);
 void convertToAscii();
 void convertEscapings();
 void addCharToBuffer(char c);
@@ -66,7 +67,7 @@ singleQuote		(\x27)
 
 %{ /* here no convrtsion of ascii is needed (ERROR HANDLING IS MUST) */ %}
 {doubleQuote}												{initStringBuffer();BEGIN(C_STRING_TYPE1);}
-<C_STRING_TYPE1>{doubleQuote}								{showString();BEGIN(INITIAL);}
+<C_STRING_TYPE1>{doubleQuote}								{BEGIN(INITIAL); return STRING;}//showString();
 <C_STRING_TYPE1>[(\n)|(\r)|(\r\n)]							error("Error unclosed string");//to check
 <C_STRING_TYPE1><<EOF>>										error("Error unclosed string");
 <C_STRING_TYPE1>\\[n|r|t|(\x5C)]							addSubStringToBuffer();
@@ -77,7 +78,7 @@ singleQuote		(\x27)
 
 %{ /* here convrtsion of ascii is needed */ %}
 {singleQuote}												{initStringBuffer();BEGIN(C_STRING_TYPE2);}
-<C_STRING_TYPE2>{singleQuote}								{showString();BEGIN(INITIAL);}
+<C_STRING_TYPE2>{singleQuote}								{BEGIN(INITIAL); return STRING;}//showString();
 <C_STRING_TYPE2>[(\n)|(\r)|(\r\n)]							error("Error unclosed string");
 <C_STRING_TYPE2><<EOF>>										error("Error unclosed string");
 <C_STRING_TYPE2>\\[n|r|t|(\x5C)]							convertEscapings();
@@ -87,31 +88,33 @@ singleQuote		(\x27)
 <C_STRING_TYPE2>.											{yytext="'";errorChar();}
 
 
-#({digit}|(\-)?{letter})(_|{letter}|\-|{digit})*			showToken("HASHID");
-"@import"													showToken("IMPORT");
-!{whitespace}*[i|I][m|M][p|P][o|O][r|R][t|T][a|A][n|N][t|T] showToken("IMPORTANT");
-{number}													showToken("NUMBER");
-{digit}*(\.)?{digit}+((\%)|[a-z]+)							showToken("UNIT");
-rgb\({spaceInt},{spaceInt},{spaceInt}\)						showToken("RGB");
+#({digit}|(\-)?{letter})(_|{letter}|\-|{digit})*			return HASHID; /*showToken("HASHID");*/
+"@import"													return IMPORT; /*showToken("IMPORT");*/
+!{whitespace}*[i|I][m|M][p|P][o|O][r|R][t|T][a|A][n|N][t|T] return IMPORTANT; /*showToken("IMPORTANT");*/
+{number}													return NUMBER; /*showToken("NUMBER");*/
+{digit}*(\.)?{digit}+((\%)|[a-z]+)							return UNIT; /*showToken("UNIT");*/
+rgb\({spaceInt},{spaceInt},{spaceInt}\)						;/*showToken("RGB");*/
 rgb\(														error("Error in rgb parameters");
-(\>|\+|~) 													showToken("COMB");
-(:)															showToken("COLON");
-(;)															showToken("SEMICOLON");
-(\{)														showToken("LBRACE");
-(\})														showToken("RBRACE");
-(\[)														showToken("LBRACKET");
-(\])														showToken("RBRACKET");
-(=)															showToken("EQUAL");
-(\*)														showToken("ASTERISK");
-(\.)														showToken("DOT");
-{id}														showToken("NAME");
+(\>|\+|~) 													return COMB; /*showToken("COMB");*/
+(:)															return COLON; /*showToken("COLON");*/
+(;)															return SEMICOLON; /*showToken("SEMICOLON");*/
+(\{)														return LBRACE; /*showToken("LBRACE");*/
+(\})														return RBRACE; /*showToken("RBRACE");*/
+(\[)														return LBRACKET; /*showToken("LBRACKET");*/
+(\])														return RBRACKET; /*showToken("RBRACKET");*/
+(=)															return EQUAL; /*showToken("EQUAL");*/
+(\*)														return ASTERISK; /*showToken("ASTERISK");*/
+(\.)														return DOT; /*showToken("DOT");*/
+(,)															return COMMA;
+{id}														return NAME;/*showToken("NAME");*/
+<<EOF>> 													return EF;
 {whitespace}												;
 .															errorChar();
 
 
 %%
 
-void error(char* errorType){
+void error(const char* errorType){
 	printf("%s\n",errorType);
 	exit(0);
 }
@@ -126,7 +129,7 @@ void errorChar(){
 	exit(0);
 }
 
-int indexof(char* str,char c){
+int indexof(const char* str,char c){
 	int i=0;
 	while('\0'!=str[i]){
 		if(str[i]==c)
@@ -205,7 +208,7 @@ void showComment(){
 	printf("%d COMMENT %d\n",yylineno,commentCounter);
 }
 
-void showToken(char * name){
+void showToken(const char * name){
 		printf("%d %s %s\n",yylineno,name,yytext);
         
 }
