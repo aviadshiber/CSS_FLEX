@@ -49,9 +49,9 @@ set<tokens> unionSet(const set<tokens> &s1,const set<tokens> &s2){
      return uSet;
 }
 
-bool isNullable( vector<bool> &nullables,int index){
-    if(index >= nullables.size()) return false;
-    return nullables[index];
+bool isNullable( vector<bool> &nullables,int var){
+    if(var >= nullables.size()) return false;
+    return nullables[var];
 }
 
 
@@ -88,6 +88,73 @@ vector< set<tokens> > first(){
     }while(isChanged);
 
     return firstCollection;
+}
+
+set<tokens> first(int var,const vector< set<tokens> > &firstCollection){
+    if(isToken(var)){
+        set<tokens> firstSet;
+        firstSet.insert((tokens)var);
+        return firstSet;
+    }
+    return firstCollection[var];
+}
+
+set<tokens> first(int index,const vector<int> &sentenial){
+    set<tokens> firstSentenial;
+    if(index>=sentenial.size()) return firstSentenial;
+    vector< set<tokens> > firstCollection= first();
+    vector<bool> nullables = getNullable();
+    firstSentenial=first(sentenial[index],firstCollection);
+    for(int i=index;i<sentenial.size()-1 && isNullable(nullables,sentenial[i]);i++){
+        firstSentenial= unionSet(firstSentenial,first(sentenial[i+1],firstCollection));
+    }
+    return firstSentenial;
+}
+
+bool isSentenialNullable(int index,const vector<int> &sentenial){
+    vector<bool> nullables = getNullable();
+    for(int i=index;i<sentenial.size();i++){
+        if(isToken(sentenial[i]) || !nullables[sentenial[i]]){
+            return false;
+        }
+    }
+    return true;
+}
+/**
+ * The function return the index of the var in a rule.
+ * if the var does not exist on that side the funciton will return -1;
+**/
+int getIndexOfRightHandSide(int var,grammar_rule rule){
+    for(int i=0;i<rule.rhs.size();i++){
+        if(rule.rhs[i]==var)
+            return i;
+    }
+    return -1;
+}
+
+vector< set<tokens> > follow(){
+    vector< set<tokens> > followCollection(NONTERMINAL_ENUM_SIZE);
+    followCollection[S]={EF};
+    bool isChanged;
+    do{
+        isChanged=false;
+        for(int var=S;var<NONTERMINAL_ENUM_SIZE;var++){
+            int varSetSize=followCollection[var].size();
+            for(int rule=0;rule<grammar.size();rule++){
+                int varIndex=getIndexOfRightHandSide(var,grammar[rule]);
+                if(0<=varIndex){
+                    int sentenialIndex=varIndex+1;
+                    vector<int> &rhs=grammar[rule].rhs;
+                    followCollection[var]=unionSet(followCollection[var],first(sentenialIndex,rhs));
+                    if(isSentenialNullable(sentenialIndex,rhs)){
+                        followCollection[var]=unionSet(followCollection[var],followCollection[grammar[rule].lhs]);
+                    }
+                }
+            }
+            if(followCollection[var].size()>varSetSize)
+                isChanged=true;
+        }
+    }while(isChanged)
 }
 
 
