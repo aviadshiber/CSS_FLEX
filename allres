@@ -1,0 +1,75 @@
+-----first------
+First:
+S = { NAME , HASHID , IMPORT , COLON , LBRACKET , ASTRISK , DOT }
+LImports = { IMPORT }
+Import = { IMPORT }
+LRules = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+Rule = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+LDeclaretions = { NAME }
+MoreDeclerations = { NAME }
+Selectors = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+MoreSelectors = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+SimpleSelector = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+Astrisk = { ASTRISK }
+SelectorModifier = { NAME , HASHID , COLON , LBRACKET , DOT }
+Declaration = { NAME }
+Important = { IMPORTANT }
+LTerms = { NAME , HASHID , STRING , NUMBER , UNIT }
+MoreTerms = { NAME , HASHID , STRING , NUMBER , UNIT }
+Term = { NAME , HASHID , STRING , NUMBER , UNIT }
+
+-----follow------
+Follow:
+S = { EF }
+LImports = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT , EF }
+Import = { NAME , HASHID , IMPORT , COLON , LBRACKET , ASTRISK , DOT , EF }
+LRules = { EF }
+Rule = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT , EF }
+LDeclaretions = { RBRACE }
+MoreDeclerations = { RBRACE }
+Selectors = { LBRACE }
+MoreSelectors = { LBRACE }
+SimpleSelector = { NAME , HASHID , COLON , LBRACE , LBRACKET , ASTRISK , DOT }
+Astrisk = { NAME , HASHID , COLON , LBRACKET , DOT }
+SelectorModifier = { NAME , HASHID , COLON , LBRACE , LBRACKET , ASTRISK , DOT }
+Declaration = { SEMICOLON }
+Important = { SEMICOLON }
+LTerms = { IMPORTANT , SEMICOLON }
+MoreTerms = { IMPORTANT , SEMICOLON }
+Term = { IMPORTANT , NAME , HASHID , STRING , SEMICOLON , RBRACKET , NUMBER , UNIT }
+
+-----select------
+Select:
+( S -> LImports LRules ) = { NAME , HASHID , IMPORT , COLON , LBRACKET , ASTRISK , DOT , EF }
+( LImports -> Import LImports ) = { IMPORT }
+( LImports ->  ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT , EF }
+( Import -> IMPORT STRING SEMICOLON ) = { IMPORT }
+( LRules -> Rule LRules ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+( LRules ->  ) = { EF }
+( Rule -> Selectors LBRACE LDeclaretions RBRACE ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+( LDeclaretions -> Declaration SEMICOLON MoreDeclerations ) = { NAME }
+( MoreDeclerations -> LDeclaretions ) = { NAME }
+( MoreDeclerations ->  ) = { RBRACE }
+( Selectors -> SimpleSelector MoreSelectors ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+( MoreSelectors -> Selectors ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+( MoreSelectors ->  ) = { LBRACE }
+( SimpleSelector -> Astrisk SelectorModifier ) = { NAME , HASHID , COLON , LBRACKET , ASTRISK , DOT }
+( Astrisk -> ASTRISK ) = { ASTRISK }
+( Astrisk ->  ) = { NAME , HASHID , COLON , LBRACKET , DOT }
+( SelectorModifier -> DOT NAME ) = { DOT }
+( SelectorModifier -> COLON NAME ) = { COLON }
+( SelectorModifier -> LBRACKET NAME EQUAL Term RBRACKET ) = { LBRACKET }
+( SelectorModifier -> HASHID ) = { HASHID }
+( SelectorModifier -> NAME ) = { NAME }
+( Declaration -> NAME COLON LTerms Important ) = { NAME }
+( Important -> IMPORTANT ) = { IMPORTANT }
+( Important ->  ) = { SEMICOLON }
+( LTerms -> Term MoreTerms ) = { NAME , HASHID , STRING , NUMBER , UNIT }
+( MoreTerms -> LTerms ) = { NAME , HASHID , STRING , NUMBER , UNIT }
+( MoreTerms ->  ) = { IMPORTANT , SEMICOLON }
+( Term -> NUMBER ) = { NUMBER }
+( Term -> UNIT ) = { UNIT }
+( Term -> STRING ) = { STRING }
+( Term -> NAME ) = { NAME }
+( Term -> HASHID ) = { HASHID }
+

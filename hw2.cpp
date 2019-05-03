@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "hw2.h"
+#include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -172,6 +174,19 @@ vector< set<tokens> > select(){
 }
 
 
+map< nonterminal, map<tokens,int> > buildTable(){
+    map< nonterminal, map<tokens,int> > tableM;
+    vector< set<tokens> > selectCollection=select();
+    for(int rule=0 ; rule<selectCollection.size() ; rule++){
+        set<tokens> &selectTokens= selectCollection[rule];
+        for (set<tokens>::iterator it = selectTokens.begin(); it != selectTokens.end(); ++it){
+            tokens token=*it;
+            tableM[grammar[rule].lhs][token]= rule+1;
+        }
+    }
+    return tableM;
+}
+
 
 
 /**
@@ -198,10 +213,50 @@ void compute_select(){
     print_select(select());
 }
 
+int predict(vector<int> &stack, map< nonterminal, map<tokens,int> > tableM,tokens token){
+    nonterminal var = (nonterminal) stack.back();
+    int rule = tableM[var][token]-1;
+    if(rule<0) throw;
+    stack.pop_back();
+    for(int i=grammar[rule].rhs.size()-1;i>=0;i--){
+        stack.push_back(grammar[rule].rhs[i]);
+    }
+    return rule+1;
+}
+
+void match(vector<int> &stack,tokens token){
+    if(stack.back()==token){
+        stack.pop_back();
+    }else {
+        throw;
+    }
+    
+}
+
 /**
  * implements an LL(1) parser for the grammar using yylex()
  */
 void parser(){
-    exit(1);
+    vector<int> stack;
+    map< nonterminal, map<tokens, int> > tableM = buildTable();
+    stack.push_back(EF);
+    stack.push_back(S);
+    tokens token = (tokens) yylex();
+    try{
+        while (!stack.empty()){
+            int top = stack.back();
+            if (isToken(top)){
+                match(stack, token);
+                token = (tokens) yylex();
+            }
+            else{
+                cout << predict(stack, tableM, token) << endl;
+            }
+        }
+    }
+    catch (...){
+        cout << "Syntax error" << endl;
+    }
+    cout << "Success" << endl;
 }
 

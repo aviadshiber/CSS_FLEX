@@ -3,7 +3,7 @@
 
 #include "tokens.h"
 #include "grammar.h"
-
+#include <map>
 /**
  * determines which variables are nullable, i.e. can produce an empty word
  * calls print_nullable when finished
