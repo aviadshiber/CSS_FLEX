@@ -134,7 +134,7 @@ int getIndexOfRightHandSide(int var,grammar_rule rule){
 
 vector< set<tokens> > follow(){
     vector< set<tokens> > followCollection(NONTERMINAL_ENUM_SIZE);
-    followCollection[S]={EF};
+    followCollection[S].insert(EF);
     bool isChanged;
     do{
         isChanged=false;
@@ -154,8 +154,24 @@ vector< set<tokens> > follow(){
             if(followCollection[var].size()>varSetSize)
                 isChanged=true;
         }
-    }while(isChanged)
+    }while(isChanged);
+    return followCollection;
 }
+
+vector< set<tokens> > select(){
+    vector< set<tokens> > followCollection = follow();
+    vector< set<tokens> > selectCollection(grammar.size());
+    for(int rule=0; rule<selectCollection.size() ; rule++){
+        if(isSentenialNullable(0,grammar[rule].rhs)){
+            selectCollection[rule] = unionSet(selectCollection[rule],followCollection[grammar[rule].lhs]);
+        }
+        selectCollection[rule] = unionSet(selectCollection[rule], first(0,grammar[rule].rhs));
+    }
+
+    return selectCollection;
+}
+
+
 
 
 /**
@@ -171,7 +187,7 @@ void compute_first(){
  * calls print_follow when finished
  */
 void compute_follow(){
-    exit(1);
+    print_follow(follow());
 }
 
 /**
@@ -179,7 +195,7 @@ void compute_follow(){
  * calls print_select when finished
  */
 void compute_select(){
-    exit(1);
+    print_select(select());
 }
 
 /**
