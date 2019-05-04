@@ -59,7 +59,7 @@ singleQuote		(\x27)
 
 {startComment}												{BEGIN(C_COMMENT);initCommentCounter();}
 <C_COMMENT>{startComment}									error("Warning nested comment");
-<C_COMMENT>{endComment}										{showComment();BEGIN(INITIAL);}
+<C_COMMENT>{endComment}										BEGIN(INITIAL);//showComment();
 <C_COMMENT><<EOF>>											error("Error unclosed comment");
 <C_COMMENT>{lineFeed}										incCommentCounter();
 <C_COMMENT>{printable}										;

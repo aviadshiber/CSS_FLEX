@@ -2,8 +2,15 @@
 #include "hw2.h"
 #include <map>
 #include <iostream>
-
+#include <exception>
 using namespace std;
+
+struct SyntaxException:public exception{
+    const char * what () const throw(){
+        return "Syntax error";
+    }
+};
+
 
 bool isToken(int token){
     return token>=IMPORTANT;
@@ -216,7 +223,7 @@ void compute_select(){
 int predict(vector<int> &stack, map< nonterminal, map<tokens,int> > tableM,tokens token){
     nonterminal var = (nonterminal) stack.back();
     int rule = tableM[var][token]-1;
-    if(rule<0) throw;
+    if(rule<0) throw SyntaxException();
     stack.pop_back();
     for(int i=grammar[rule].rhs.size()-1;i>=0;i--){
         stack.push_back(grammar[rule].rhs[i]);
@@ -228,7 +235,7 @@ void match(vector<int> &stack,tokens token){
     if(stack.back()==token){
         stack.pop_back();
     }else {
-        throw;
+        throw SyntaxException();
     }
     
 }
@@ -253,10 +260,11 @@ void parser(){
                 cout << predict(stack, tableM, token) << endl;
             }
         }
+        cout << "Success" << endl;
     }
-    catch (...){
-        cout << "Syntax error" << endl;
+    catch (SyntaxException& e){
+        cout << e.what() << endl;
     }
-    cout << "Success" << endl;
+    
 }
 
