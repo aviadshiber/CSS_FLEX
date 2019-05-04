@@ -63,7 +63,7 @@ singleQuote		(\x27)
 <C_COMMENT><<EOF>>											error("Error unclosed comment");
 <C_COMMENT>{lineFeed}										incCommentCounter();
 <C_COMMENT>{printable}										;
-<C_COMMENT>.												{yytext="/";errorChar();}
+<C_COMMENT>.												; //{yytext="/";errorChar();}
 
 %{ /* here no convrtsion of ascii is needed (ERROR HANDLING IS MUST) */ %}
 {doubleQuote}												{initStringBuffer();BEGIN(C_STRING_TYPE1);}
@@ -74,7 +74,7 @@ singleQuote		(\x27)
 <C_STRING_TYPE1>\\(0x|x)?([0-9A-Fa-f]){1,6}					addSubStringToBuffer();
 <C_STRING_TYPE1>\\(0x|x)?([^\x20\x09\x0A\x0D])				errorAscii();
 <C_STRING_TYPE1>([\x20-\x7E|\x09]{-}[(\x22)])				addSubStringToBuffer();
-<C_STRING_TYPE1>.											{yytext="\"";errorChar();}
+<C_STRING_TYPE1>.											; //{yytext="\"";errorChar();}
 
 %{ /* here convrtsion of ascii is needed */ %}
 {singleQuote}												{initStringBuffer();BEGIN(C_STRING_TYPE2);}
@@ -85,7 +85,7 @@ singleQuote		(\x27)
 <C_STRING_TYPE2>\\(0x|x)?([0-9A-Fa-f]){1,6}					convertToAscii(); 
 <C_STRING_TYPE2>\\(0x|x)?([^\x20\x09\x0A\x0D])				errorAscii();
 <C_STRING_TYPE2>([\x20-\x7E|\x09]{-}[(\x27)])				addSubStringToBuffer();
-<C_STRING_TYPE2>.											{yytext="'";errorChar();}
+<C_STRING_TYPE2>.											; //{yytext="'";errorChar();}
 
 
 #({digit}|(\-)?{letter})(_|{letter}|\-|{digit})*			return HASHID; /*showToken("HASHID");*/
@@ -195,6 +195,7 @@ void addSubStringToBuffer(){
 void showString(){
 	printf("%d STRING %s\n",yylineno,stringBuffer);
 }
+
 
 void initCommentCounter(){
 	commentCounter=1;
